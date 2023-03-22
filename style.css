@@ -1,0 +1,22 @@
+
+body {
+    background-color: blue;
+    color: white;
+}
+
+.my_image {
+    width: 120px;
+}
+
+.outer-container {
+    border: 2px solid red;
+    background-color: darkgray;
+    padding: 10px;
+}
+
+.inner-container {
+    border: 2px solid blue;
+    background-color: black;
+    padding: 10px;
+    margin: 10px 0;
+}
