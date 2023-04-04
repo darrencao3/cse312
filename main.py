@@ -1,3 +1,5 @@
+import base64
+import hashlib
 import random
 import socket
 import json
@@ -28,6 +30,8 @@ while True:
     if len(headers) != 0:
         if 'GET' in headers[0] or 'POST' in headers[0] or 'PUT' in headers[0] or 'DELETE' in headers[0]:
             filename = headers[0].split()[1]
+
+    print(headers)
 
     if filename == '/':
         tkn = ""
@@ -204,6 +208,15 @@ while True:
             response = f'HTTP/1.1 200 OK \r\nX-Content-Type-Options: nosniff\r\nContent-Type: image/jpeg\r\n\r\n'
             response = response.encode() + temp
             client_connection.send(response)
+    elif filename == '/websocket':
+        temp = headers[-4].split(' ')[1] + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+        temp = hashlib.sha1(temp.encode()).digest()
+        temp = base64.b64encode(temp)
+        response = f'HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Accept: {temp}\r\n\r\n'
+        client_connection.send(response.encode())
+    elif filename == '/chat-history':
+        response = f'HTTP/1.1 200 OK \r\n'
+        client_connection.send(response.encode())
     elif filename == '/clear-database':
         coll1.delete_many({})
         coll2.delete_many({})
