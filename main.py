@@ -3,6 +3,10 @@ import hashlib
 import random
 import socket
 import json
+import time
+
+# import websockets
+
 from pymongo import MongoClient
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -11,7 +15,8 @@ server_socket.bind(('0.0.0.0', 8080))
 server_socket.listen(5)
 
 # client = MongoClient('mongodb://root:password@mongodb')  # submission
-client = MongoClient('mongodb://root:password@localhost:27017/admin?authSource=admin&authMechanism=SCRAM-SHA-1')  # testing
+client = MongoClient(
+    'mongodb://root:password@localhost:27017/admin?authSource=admin&authMechanism=SCRAM-SHA-1')  # testing
 db = client["myDB"]
 coll1 = db.get_collection("coll1")  # hw1
 coll2 = db.get_collection("coll2")  # hw2
@@ -49,7 +54,8 @@ while True:
             count3 = str(i['message']).count(">")
             count4 = str(i['message']).count('"')
             count5 = str(i['message']).count("'")
-            temp += len(i['message']) + 35 + 3*count1 + 2*count2 + 2*count3 + 4*count4 + 3*count5  # <div class="inner-container"></div> + replaces
+            temp += len(i[
+                            'message']) + 35 + 3 * count1 + 2 * count2 + 2 * count3 + 4 * count4 + 3 * count5  # <div class="inner-container"></div> + replaces
         # response = f'HTTP/1.1 200 OK\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\n\Content-Length: {temp}\r\n\r\n'  # hw1
         response = f'HTTP/1.1 200 OK\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\n\r\n'  # hw2, might use later
         tkn_html = f'<input type="hidden" value="{tkn}" name="xsrf_token"/>'
@@ -173,7 +179,8 @@ while True:
                 raw_request += client_connection.recv(1048576)
             if b'Content-Type: image/jpeg' in raw_request:
                 boundaryID = boundary.decode().replace("------WebKitFormBoundary", "").replace("--", "")
-                headers2 = raw_request.split(b"image/jpeg\r\n\r\n")[0].decode().split(f"------WebKitFormBoundary{boundaryID}")
+                headers2 = raw_request.split(b"image/jpeg\r\n\r\n")[0].decode().split(
+                    f"------WebKitFormBoundary{boundaryID}")
                 xsrf = headers2[-3].split('\r\n')[-2]
                 if len(list(token_coll2.find({"token": xsrf}))) != 0:
                     msg = headers2[-2].split('name="comment"')[1].replace("\r\n", "")
@@ -209,11 +216,19 @@ while True:
             response = response.encode() + temp
             client_connection.send(response)
     elif filename == '/websocket':
-        temp = headers[-4].split(' ')[1] + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-        temp = hashlib.sha1(temp.encode()).digest()
-        temp = base64.b64encode(temp)
-        response = f'HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Accept: {temp}\r\n\r\n'
+        temp = raw_request.split(b"\r\n")[-4].split(b" ")[1] + b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+        print(temp)
+        sha_1 = hashlib.sha1()
+        sha_1.update(temp)
+        temp = sha_1.hexdigest()
+        temp = temp.upper()
+        print(temp)
+        temp = base64.b64encode(temp.encode())
+        print(temp)
+        response = f'HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Accept: {temp.decode()}\r\n\r\n'
         client_connection.send(response.encode())
+        while True:
+            pass
     elif filename == '/chat-history':
         response = f'HTTP/1.1 200 OK \r\n'
         client_connection.send(response.encode())
