@@ -216,19 +216,17 @@ while True:
             response = response.encode() + temp
             client_connection.send(response)
     elif filename == '/websocket':
-        temp = raw_request.split(b"\r\n")[-4].split(b" ")[1] + b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+        print(raw_request.split(b"\r\n")[-10])
+        temp = raw_request.split(b"\r\n")[-10].split(b" ")[1] + b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
         print(temp)
-        sha_1 = hashlib.sha1()
-        sha_1.update(temp)
-        temp = sha_1.hexdigest()
-        temp = temp.upper()
+        temp = hashlib.sha1(temp).digest()
+        # temp = temp.upper()
         print(temp)
-        temp = base64.b64encode(temp.encode())
+        temp = base64.b64encode(temp).decode()
         print(temp)
-        response = f'HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Accept: {temp.decode()}\r\n\r\n'
+        response = f'HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Accept: {temp}\r\n\r\n'
+        print(response)
         client_connection.send(response.encode())
-        while True:
-            pass
     elif filename == '/chat-history':
         response = f'HTTP/1.1 200 OK \r\n'
         client_connection.send(response.encode())
