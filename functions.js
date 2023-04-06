@@ -3,10 +3,6 @@ const socket = new WebSocket('ws://' + window.location.host + '/websocket');
 
 let webRTCConnection;
 
-socket.addEventListener("open", (event) => {
-    socket.send("hello");
-});
-
 // Allow users to send messages by pressing enter instead of clicking the Send button
 document.addEventListener("keypress", function (event) {
     if (event.code === "Enter") {
