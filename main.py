@@ -5,10 +5,12 @@ import socket
 import json
 import _thread
 
+
 from pymongo import MongoClient
 
 # client = MongoClient('mongodb://root:password@mongodb')  # submission
-client = MongoClient('mongodb://root:password@localhost:27017/admin?authSource=admin&authMechanism=SCRAM-SHA-1')  # testing
+client = MongoClient(
+    'mongodb://root:password@localhost:27017/admin?authSource=admin&authMechanism=SCRAM-SHA-1')  # testing
 db = client["myDB"]
 coll1 = db.get_collection("coll1")  # hw1
 coll2 = db.get_collection("coll2")  # hw2
@@ -30,7 +32,7 @@ def new_user(client_connection, user_number):
             if 'GET' in headers[0] or 'POST' in headers[0] or 'PUT' in headers[0] or 'DELETE' in headers[0]:
                 filename = headers[0].split()[1]
 
-        # print(headers)
+        print(headers)
 
         if filename == '/':
             tkn = ""
@@ -192,7 +194,8 @@ def new_user(client_connection, user_number):
                     else:
                         found = False
             if found is True:
-                client_connection.sendall('HTTP/1.1 303 Redirect to home\r\nContent-Length: 0\r\nLocation: /\n\n'.encode())
+                client_connection.sendall(
+                    'HTTP/1.1 303 Redirect to home\r\nContent-Length: 0\r\nLocation: /\n\n'.encode())
             else:
                 client_connection.sendall('HTTP/1.1 403 Forbidden\n\nRequest was rejected\n\n'.encode())
         elif filename[0:6] == '/image' and filename[-4:] == '.jpg':
@@ -224,7 +227,7 @@ def new_user(client_connection, user_number):
             while True:
                 raw_msg = client_connection.recv(1048576)
                 if raw_msg != b'':
-                    print(raw_msg)
+                    # print(raw_msg)
                     op_code = raw_msg[0] & 15
                     if op_code == 8:
                         break
@@ -246,24 +249,27 @@ def new_user(client_connection, user_number):
                             for i in lst:
                                 decoded += chr(i)
                             decoded = decoded.split(",")
-                            broadcast = f'{decoded[0]}, "username":"{user_number}", {decoded[1]}'
+                            broadcast = f'{decoded[0]},"username":"{user_number}",{decoded[1]}'
+                            chat_coll3.insert_one({"messageType": "chatMessage", "username": user_number, "message": decoded[1]})
                             broadcast = list(broadcast)
                             response = []
-                            counter = 0
                             for i in broadcast:
-                                response.append(mask[counter % 4] ^ ord(i))
-                                counter += 1
+                                response.append(ord(i))
                             response = [129] + [len(response)] + response
                             temp2 = []
                             for i in response:
-                                temp2.append(str(i.to_bytes(1, 'big')))
-                            print(temp2)
-                            temp2 = "".join(temp2).replace("b'", "")
-
-                            print(temp2)
+                                temp2.append(str(i.to_bytes(1, 'little')))
+                            for i in range(len(temp2)):
+                                temp2[i] = temp2[i][2:][:-1]
+                            temp3 = "".join(temp2).encode().decode('unicode-escape').encode('ISO-8859-1')
+                            for i in all_users:
+                                try:
+                                    i.send(temp3)
+                                except:
+                                    print("something aborted and failed")
         elif filename == '/chat-history':
-            response = f'HTTP/1.1 200 OK \r\n'
-            client_connection.sendall(response.encode())
+            print("hi")
+
         elif filename == '/clear-database':
             coll1.delete_many({})
             coll2.delete_many({})
@@ -286,4 +292,4 @@ while True:
     client_connect, client_address = server_socket.accept()
     user_num = "user" + str(random.randint(0, 1000))
     all_users.append(client_connect)
-    _thread.start_new_thread(new_user, (client_connect, user_num, ))
+    _thread.start_new_thread(new_user, (client_connect, user_num,))
