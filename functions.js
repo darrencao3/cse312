@@ -1,4 +1,6 @@
 // Establish a WebSocket connection with the server
+welcome()
+
 const socket = new WebSocket('ws://' + window.location.host + '/websocket');
 
 let webRTCConnection;

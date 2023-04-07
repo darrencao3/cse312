@@ -5,7 +5,6 @@ import socket
 import json
 import _thread
 
-
 from pymongo import MongoClient
 
 # client = MongoClient('mongodb://root:password@mongodb')  # submission
@@ -250,7 +249,8 @@ def new_user(client_connection, user_number):
                                 decoded += chr(i)
                             decoded = decoded.split(",")
                             broadcast = f'{decoded[0]},"username":"{user_number}",{decoded[1]}'
-                            chat_coll3.insert_one({"messageType": "chatMessage", "username": user_number, "message": decoded[1]})
+                            chat_coll3.insert_one(
+                                {"messageType": "chatMessage", "username": user_number, "message": decoded[1].split(":")[1]})
                             broadcast = list(broadcast)
                             response = []
                             for i in broadcast:
@@ -264,17 +264,24 @@ def new_user(client_connection, user_number):
                             temp3 = "".join(temp2).encode().decode('unicode-escape').encode('ISO-8859-1')
                             for i in all_users:
                                 try:
-                                    i.send(temp3)
+                                    i.sendall(temp3)
                                 except:
                                     print("something aborted and failed")
         elif filename == '/chat-history':
-            print("hi")
-
+            lst = []
+            for i in list(chat_coll3.find({"messageType": "chatMessage"})):
+                lst.append({"username": i["username"], "comment": i["message"][1:][:-2]})
+            temp = json.dumps(lst)
+            response = f'HTTP/1.1 200 OK\r\nX-Content-Type-Options: nosniff\r\napplication/json; charset=utf-8\r\nContent-Length: {len(temp)}\r\n\r\n'
+            response += temp
+            # print(response)
+            client_connection.sendall(response.encode())
         elif filename == '/clear-database':
             coll1.delete_many({})
             coll2.delete_many({})
             img_coll2.delete_many({})
             token_coll2.delete_many({})
+            chat_coll3.delete_many({})
             client_connection.sendall('HTTP/1.1 303 Redirect to home\r\nContent-Length: 0\r\nLocation: /\n\n'.encode())
         else:
             client_connection.sendall(
