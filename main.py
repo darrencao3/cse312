@@ -8,15 +8,13 @@ import _thread
 from pymongo import MongoClient
 
 # client = MongoClient('mongodb://root:password@mongodb')  # submission
-client = MongoClient(
-    'mongodb://root:password@localhost:27017/admin?authSource=admin&authMechanism=SCRAM-SHA-1')  # testing
+client = MongoClient('mongodb://root:password@localhost:27017/admin?authSource=admin&authMechanism=SCRAM-SHA-1')  # testing
 db = client["myDB"]
 coll1 = db.get_collection("coll1")  # hw1
 coll2 = db.get_collection("coll2")  # hw2
 img_coll2 = db.get_collection("img_coll2")  # hw2
 token_coll2 = db.get_collection("token_coll2")  # hw2
 chat_coll3 = db.get_collection("chat_coll3")  # hw3
-
 
 def new_user(client_connection, user_number):
     while True:
@@ -282,6 +280,7 @@ def new_user(client_connection, user_number):
             img_coll2.delete_many({})
             token_coll2.delete_many({})
             chat_coll3.delete_many({})
+            visit_count4.delete_many({})
             client_connection.sendall('HTTP/1.1 303 Redirect to home\r\nContent-Length: 0\r\nLocation: /\n\n'.encode())
         else:
             client_connection.sendall(

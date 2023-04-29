@@ -116,6 +116,14 @@ function connectWebRTC() {
 function welcome() {
     document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
 
+    if (document.cookie.indexOf('count=') === -1) {
+        document.cookie = "count=1; max-age=3600"
+        document.getElementById("paragraph").innerHTML += "<h1>Number of page visits: 1</h1>"
+    } else {
+        document.cookie = "count=" + (parseInt(document.cookie.substring(6, )) + 1) + "; max-age=3600"
+        document.getElementById("paragraph").innerHTML += "<h1>Number of page visits: " + document.cookie.substring(6, ) + "</h1>"
+    }
+
     get_chat_history()
 
     // use this line to start your video without having to click a button. Helpful for debugging
