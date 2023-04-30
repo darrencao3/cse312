@@ -13,8 +13,8 @@ from pymongo import MongoClient
 # For some reason, the welcome back message doesn't show up until the page is refreshed twice on Chrome. It works as expected on Firefox
 
 
-client = MongoClient('mongodb://root:password@mongodb')  # submission
-# client = MongoClient('mongodb://root:password@localhost:27017/admin?authSource=admin&authMechanism=SCRAM-SHA-1')  # testing
+# client = MongoClient('mongodb://root:password@mongodb')  # submission
+client = MongoClient('mongodb://root:password@localhost:27017/admin?authSource=admin&authMechanism=SCRAM-SHA-1')  # testing
 db = client["myDB"]
 coll1 = db.get_collection("coll1")  # hw1
 coll2 = db.get_collection("coll2")  # hw2
@@ -48,10 +48,11 @@ def new_user(client_connection, user_number):
             cookie = cookie.split(";")
             for i in cookie:
                 if "token=" in i:
-                    t = i.split("=")[1]
+                    t = i.split("=")[1].strip()
                     for j in list(hashes4.find({})):
                         if bcrypt.checkpw(t.encode('utf-8'), j['hash']) is True:
                             user = j['user']
+                            break
             tkn = ""
             for i in range(20):
                 tkn += str(chr(random.randint(65, 122)))
@@ -318,7 +319,6 @@ def new_user(client_connection, user_number):
             else:
                 h = bcrypt.hashpw(o['token'].encode('utf-8'), bcrypt.gensalt())
                 hashes4.insert_one({'hash': h, 'user': o['user']})
-                print(o['token'])
                 print("login successful")
             client_connection.sendall(response.encode())
         elif filename == '/clear-database':
