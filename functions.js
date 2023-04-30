@@ -115,13 +115,52 @@ function connectWebRTC() {
 
 function welcome() {
     document.getElementById("paragraph").innerHTML += "<br/>This text was added by JavaScript 😀"
+    /*
+    document.cookie = "count=1; max-age=3600"
+    document.getElementById("paragraph").innerHTML += "<h1>Number of page visits: 1</h1>"
+    */
 
-    if (document.cookie.indexOf('count=') === -1) {
+    let cookies = document.cookie.split(";")
+
+    console.log(cookies.length)
+    console.log(cookies[0])
+    if (cookies.length === 0) {
         document.cookie = "count=1; max-age=3600"
         document.getElementById("paragraph").innerHTML += "<h1>Number of page visits: 1</h1>"
     } else {
-        document.cookie = "count=" + (parseInt(document.cookie.substring(6, )) + 1) + "; max-age=3600"
-        document.getElementById("paragraph").innerHTML += "<h1>Number of page visits: " + document.cookie.substring(6, ) + "</h1>"
+        for (let i = 0; i < cookies.length; i++) {
+            let temp = cookies[i].split("=");
+            let temp2 = temp[0].replace(/\s+/g, '')
+            if (temp2 === "token") {
+                /*
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/", true);
+                xhr.send(JSON.stringify({"token": temp[1]}))
+                */
+            }
+            else if (temp2 === "count") {
+                if (isNaN(parseInt(temp[1]))) {
+                    document.cookie = "count=1; max-age=3600"
+                    document.getElementById("paragraph").innerHTML += "<h1>Number of page visits: 1</h1>"
+                } else {
+                    let temp3 = (parseInt(temp[1]) + 1)
+                    document.cookie = "count=" + temp3 + "; max-age=3600"
+                    document.getElementById("paragraph").innerHTML += "<h1>Number of page visits: " + temp3 + "</h1>"
+                }
+            } else {
+                document.cookie = "=;expires=Sat, 29 Apr 2023 00:00:0 GMT;path=/";
+            }
+        }
+        if (cookies.length === 1) {
+            if (cookies[0].split("=")[0] === "token") {
+                document.cookie = "count=1; max-age=3600"
+                document.getElementById("paragraph").innerHTML += "<h1>Number of page visits: 1</h1>"
+            }
+            if (cookies[0] === "") {
+                document.cookie = "count=1; max-age=3600"
+                document.getElementById("paragraph").innerHTML += "<h1>Number of page visits: 1</h1>"
+            }
+        }
     }
 
     get_chat_history()
@@ -129,3 +168,56 @@ function welcome() {
     // use this line to start your video without having to click a button. Helpful for debugging
     // startVideo();
 }
+
+// hw4
+function openSU() {
+  document.getElementById("signupform").style.display = "block";
+}
+
+function closeSU() {
+  document.getElementById("signupform").style.display = "none";
+  document.getElementById("userSU").value = "";
+  document.getElementById("passSU").value = "";
+}
+
+function openL() {
+  document.getElementById("loginform").style.display = "block";
+}
+
+function closeL() {
+  document.getElementById("loginform").style.display = "none";
+  document.getElementById("loginSU").value = "";
+  document.getElementById("loginSU").value = "";
+}
+
+document.getElementById("signupform").addEventListener("submit", (e) => {
+    e.preventDefault();
+    let user = document.getElementById("userSU").value
+    let pass = document.getElementById("passSU").value
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/signup", true);
+    xhr.send(JSON.stringify({"user": user, "pass": pass}))
+
+    document.getElementById("signupform").style.display = "none";
+    document.getElementById("userSU").value = "";
+    document.getElementById("passSU").value = "";
+})
+
+document.getElementById("loginform").addEventListener("submit", (e) => {
+    e.preventDefault();
+    let user = document.getElementById("userL").value
+    let pass = document.getElementById("passL").value
+    let token = Math.random().toString(36).substr(2) + Math.random().toString(36).substr(2) + Math.random().toString(36).substr(2);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/login", true);
+    xhr.send(JSON.stringify({"user": user, "pass": pass, "token": token}))
+
+    document.cookie = "token=" + token + "; max-age=3600"
+    //document.cookie = "token=" + token + "; max-age=3600; HttpOnly"
+
+    document.getElementById("loginform").style.display = "none";
+    document.getElementById("userL").value = "";
+    document.getElementById("passL").value = "";
+})

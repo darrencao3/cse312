@@ -8,8 +8,39 @@
 <h1>CSE312 Sample Page</h1>
 
 <p id="paragraph">
+    Welcome back!
     This text is from the HTML file 🙂
 </p>
+
+<button class="open-button" onclick="openSU()">Sign up</button>
+
+<div class="form-popup" id="signupform">
+  <form class="form-container">
+    <label for="userSU"><b>Username</b></label>
+    <input type="text" id="userSU" name="userSU" required>
+
+    <label for="passSU"><b>Password</b></label>
+    <input type="password" id="passSU" name="passSU" required>
+
+    <button type="submit" class="btn">Sign Up</button>
+    <button type="button" class="btn cancel" onclick="closeSU()">Cancel</button>
+  </form>
+</div>
+
+<button class="open-button" onclick="openL()">Login</button>
+
+<div class="form-popup" id="loginform">
+  <form class="form-container">
+    <label for="userSU"><b>Username</b></label>
+    <input type="text" id="userL" name="userL" required>
+
+    <label for="passSU"><b>Password</b></label>
+    <input type="password" id="passL" name="passL" required>
+
+    <button type="submit" class="btn">Login</button>
+    <button type="button" class="btn cancel" onclick="closeL()">Cancel</button>
+  </form>
+</div>
 
 <p>
     Here's a flamingo:

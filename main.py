@@ -4,17 +4,25 @@ import random
 import socket
 import json
 import _thread
+import bcrypt
 
 from pymongo import MongoClient
 
-# client = MongoClient('mongodb://root:password@mongodb')  # submission
-client = MongoClient('mongodb://root:password@localhost:27017/admin?authSource=admin&authMechanism=SCRAM-SHA-1')  # testing
+
+# NOTE FOR GRADER
+# For some reason, the welcome back message doesn't show up until the page is refreshed twice on Chrome. It works as expected on Firefox
+
+
+client = MongoClient('mongodb://root:password@mongodb')  # submission
+# client = MongoClient('mongodb://root:password@localhost:27017/admin?authSource=admin&authMechanism=SCRAM-SHA-1')  # testing
 db = client["myDB"]
 coll1 = db.get_collection("coll1")  # hw1
 coll2 = db.get_collection("coll2")  # hw2
 img_coll2 = db.get_collection("img_coll2")  # hw2
 token_coll2 = db.get_collection("token_coll2")  # hw2
 chat_coll3 = db.get_collection("chat_coll3")  # hw3
+users4 = db.get_collection("users4")  # hw4
+hashes4 = db.get_collection("hashes4")  # hw4
 
 def new_user(client_connection, user_number):
     while True:
@@ -32,6 +40,18 @@ def new_user(client_connection, user_number):
         print(headers)
 
         if filename == '/':
+            cookie = ""
+            user = ""
+            for i in headers:
+                if "Cookie:" in i:
+                    cookie = i
+            cookie = cookie.split(";")
+            for i in cookie:
+                if "token=" in i:
+                    t = i.split("=")[1]
+                    for j in list(hashes4.find({})):
+                        if bcrypt.checkpw(t.encode('utf-8'), j['hash']) is True:
+                            user = j['user']
             tkn = ""
             for i in range(20):
                 tkn += str(chr(random.randint(65, 122)))
@@ -47,15 +67,18 @@ def new_user(client_connection, user_number):
                 count3 = str(i['message']).count(">")
                 count4 = str(i['message']).count('"')
                 count5 = str(i['message']).count("'")
-                temp += len(i[
-                                'message']) + 35 + 3 * count1 + 2 * count2 + 2 * count3 + 4 * count4 + 3 * count5  # <div class="inner-container"></div> + replaces
+                temp += len(i['message']) + 35 + 3 * count1 + 2 * count2 + 2 * count3 + 4 * count4 + 3 * count5  # <div class="inner-container"></div> + replaces
             # response = f'HTTP/1.1 200 OK\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\n\Content-Length: {temp}\r\n\r\n'  # hw1
             response = f'HTTP/1.1 200 OK\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\n\r\n'  # hw2, might use later
             tkn_html = f'<input type="hidden" value="{tkn}" name="xsrf_token"/>'
             response += tkn_html
+
             f2 = open('index.html', 'r', encoding='utf-8')
             for line in f2:
-                if 'name="xsrf_token"' in line:
+                if 'Welcome back!' in line:
+                    if user != "":
+                        response += f'Welcome back, {user}!<br>'
+                elif 'name="xsrf_token"' in line:
                     response += tkn_html
                 else:
                     response += line
@@ -274,13 +297,38 @@ def new_user(client_connection, user_number):
             response += temp
             # print(response)
             client_connection.sendall(response.encode())
+        elif filename == '/signup':
+            response = f'HTTP/1.1 200 OK\r\n\r\n'
+            o = json.loads(headers[-1])
+            if len(list(users4.find({'username': o['user']}))) == 0:
+                p = bcrypt.hashpw(o['pass'].encode('utf-8'), bcrypt.gensalt())
+                users4.insert_one({'username': o['user'], 'password': p})
+                print("signup successful")
+            else:
+                print("user already exists")
+            client_connection.sendall(response.encode())
+        elif filename == '/login':
+            response = f'HTTP/1.1 200 OK\r\n\r\n'
+            o = json.loads(headers[-1])
+            u = list(users4.find({'username': o['user']}))
+            if len(u) == 0:
+                print("user does not exist")
+            elif bcrypt.checkpw(o['pass'].encode('utf-8'), u[0]['password']) is False:
+                print("password was incorrect")
+            else:
+                h = bcrypt.hashpw(o['token'].encode('utf-8'), bcrypt.gensalt())
+                hashes4.insert_one({'hash': h, 'user': o['user']})
+                print(o['token'])
+                print("login successful")
+            client_connection.sendall(response.encode())
         elif filename == '/clear-database':
             coll1.delete_many({})
             coll2.delete_many({})
             img_coll2.delete_many({})
             token_coll2.delete_many({})
             chat_coll3.delete_many({})
-            visit_count4.delete_many({})
+            users4.delete_many({})
+            hashes4.delete_many({})
             client_connection.sendall('HTTP/1.1 303 Redirect to home\r\nContent-Length: 0\r\nLocation: /\n\n'.encode())
         else:
             client_connection.sendall(

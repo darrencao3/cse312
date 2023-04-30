@@ -20,3 +20,10 @@ body {
     padding: 10px;
     margin: 10px 0;
 }
+
+/* hw4 */
+.form-popup {
+  display: none;
+  bottom: 0;
+  border: 2px solid black;
+}
