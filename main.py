@@ -8,11 +8,6 @@ import bcrypt
 
 from pymongo import MongoClient
 
-
-# NOTE FOR GRADER
-# For some reason, the welcome back message doesn't show up until the page is refreshed twice on Chrome. It works as expected on Firefox
-
-
 # client = MongoClient('mongodb://root:password@mongodb')  # submission
 client = MongoClient('mongodb://root:password@localhost:27017/admin?authSource=admin&authMechanism=SCRAM-SHA-1')  # testing
 db = client["myDB"]
@@ -309,7 +304,7 @@ def new_user(client_connection, user_number):
                 print("user already exists")
             client_connection.sendall(response.encode())
         elif filename == '/login':
-            response = f'HTTP/1.1 200 OK\r\n\r\n'
+            response = 'HTTP/1.1 200 OK\r\n\r\n'
             o = json.loads(headers[-1])
             u = list(users4.find({'username': o['user']}))
             if len(u) == 0:
@@ -320,6 +315,8 @@ def new_user(client_connection, user_number):
                 h = bcrypt.hashpw(o['token'].encode('utf-8'), bcrypt.gensalt())
                 hashes4.insert_one({'hash': h, 'user': o['user']})
                 print("login successful")
+                response = f'HTTP/1.1 200 OK\r\nSet-Cookie: token={o["token"]}; HttpOnly; Max-Age=3600\r\n\r\n'
+            print(response)
             client_connection.sendall(response.encode())
         elif filename == '/clear-database':
             coll1.delete_many({})

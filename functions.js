@@ -123,7 +123,6 @@ function welcome() {
     let cookies = document.cookie.split(";")
 
     console.log(cookies.length)
-    console.log(cookies[0])
     if (cookies.length === 0) {
         document.cookie = "count=1; max-age=3600"
         document.getElementById("paragraph").innerHTML += "<h1>Number of page visits: 1</h1>"
@@ -132,11 +131,7 @@ function welcome() {
             let temp = cookies[i].split("=");
             let temp2 = temp[0].replace(/\s+/g, '')
             if (temp2 === "token") {
-                /*
-                const xhr = new XMLHttpRequest();
-                xhr.open("POST", "/", true);
-                xhr.send(JSON.stringify({"token": temp[1]}))
-                */
+                console.log("this shouldn't happen")
             }
             else if (temp2 === "count") {
                 if (isNaN(parseInt(temp[1]))) {
@@ -213,9 +208,6 @@ document.getElementById("loginform").addEventListener("submit", (e) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/login", true);
     xhr.send(JSON.stringify({"user": user, "pass": pass, "token": token}))
-
-    document.cookie = "token=" + token + "; max-age=3600"
-    //document.cookie = "token=" + token + "; max-age=3600; HttpOnly"
 
     document.getElementById("loginform").style.display = "none";
     document.getElementById("userL").value = "";
