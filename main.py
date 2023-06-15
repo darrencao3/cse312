@@ -315,7 +315,7 @@ def new_user(client_connection, user_number):
                 h = bcrypt.hashpw(o['token'].encode('utf-8'), bcrypt.gensalt())
                 hashes4.insert_one({'hash': h, 'user': o['user']})
                 print("login successful")
-                response = f'HTTP/1.1 200 OK\r\nSet-Cookie: token={o["token"]}; HttpOnly; Max-Age=3600\r\n\r\n'
+                response = f'HTTP/1.1 200 OK\r\nSet-Cookie: token={o["token"]}; HttpOnly; Max-Age=3600\r\nContent-Length: 0\r\n\r\n'
             print(response)
             client_connection.sendall(response.encode())
         elif filename == '/clear-database':
